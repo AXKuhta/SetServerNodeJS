@@ -1,0 +1,17 @@
+# Installation:
+# - sudo adduser setserver
+# - Then copy server files into SetServerNodeJS
+# - Then install this systemd unit file
+
+[Unit]
+Description=Set Server NodeJS App
+After=network.target
+
+[Service]
+Type=simple
+User=setserver
+ExecStart=/usr/bin/node /home/setserver/SetServerNodeJS/
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
