@@ -1,7 +1,12 @@
+const hashing = require("bigint-hash")
 const express = require("express")
 const path = require("path")
 const fs = require("fs")
 const app = express()
+
+function hash(str) {
+	return "" + hashing.hashAsBigInt(hashing.HashType.SHA256, Buffer.from("setserver_salt" + str))
+}
 
 // State
 let users = {}
@@ -13,6 +18,7 @@ const data_dir = "/tmp/setserver/"
 // Load state from disk
 function load_state() {
 	if (fs.existsSync(data_dir) === false) {
+		console.log("First run! Creating /tmp/setserver to store user accounts")
 		return fs.mkdirSync("/tmp/setserver/")
 	} else {
 		console.log("Loading saved state from " + data_dir)
@@ -72,7 +78,7 @@ function register_fn(request, response) {
 	if (password === null) return response.json(err("Password missing"))
 	if (nickname in nicknames) return response.json(err("Nickname taken"))
 
-	const accessToken = 2**32 * Math.random() >> 0
+	const accessToken = hash(Math.random())
 
 	if (accessToken in users) return response.json(err("Internal server error"))
 
@@ -80,8 +86,8 @@ function register_fn(request, response) {
 	users[accessToken] = {
 		saved: 0,
 		modified: Date.now(),
-		nickname,
-		password
+		nickname: nickname,
+		password: hash(password)
 	}
 
 	save_state()
