@@ -8,9 +8,11 @@ function hash(str) {
 	return "" + hashing.hashAsBigInt(hashing.HashType.SHA256, Buffer.from("setserver_salt" + str))
 }
 
-// State
+// Ephemeral state
+let rooms = []
+
+// Persistent state
 let users = {}
-let rooms = {}
 let nicknames = {}
 
 const data_dir = "/tmp/setserver/"
@@ -100,7 +102,28 @@ function register_fn(request, response) {
 	response.json(result)
 }
 
+function room_create_fn(request, response) {
+	const token = request.body.token || null
+
+	if (token === null) return response.json(err("Token missing"))
+	if (token in users === false) return response.json(err("Invalid token"))
+
+	const room = {
+		created: Date.now(),
+		users: [],
+		cards: []
+	}
+
+	const room_id = rooms.push(room)
+	const result = {
+		gameId: room_id
+	}
+
+	response.json(result)
+}
+
 app.post("/user/register", register_fn)
+app.post("/set/room/create", room_create_fn)
 
 // Standalone web server mode
 app.listen(3000)
