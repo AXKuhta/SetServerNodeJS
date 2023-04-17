@@ -53,7 +53,7 @@ function err(message) {
 const json_parser = express.json()
 const error_catch = function(error, request, response, next) {
 	if (error instanceof SyntaxError) {
-		response.status(400).json(err("Malformed JSON"))
+		response.json(err("Malformed JSON"))
 	} else next()
 }
 
@@ -68,13 +68,13 @@ function register_fn(request, response) {
 	const nickname = request.body.nickname || null
 	const password = request.body.password || null
 
-	if (nickname === null) return response.status(400).json(err("Nickname missing"))
-	if (password === null) return response.status(400).json(err("Password missing"))
-	if (nickname in nicknames) return response.status(400).json(err("Nickname taken"))
+	if (nickname === null) return response.json(err("Nickname missing"))
+	if (password === null) return response.json(err("Password missing"))
+	if (nickname in nicknames) return response.json(err("Nickname taken"))
 
 	const accessToken = 2**32 * Math.random() >> 0
 
-	if (accessToken in users) return response.status(500).json(err("Internal server error"))
+	if (accessToken in users) return response.json(err("Internal server error"))
 
 	nicknames[nickname] = accessToken
 	users[accessToken] = {
