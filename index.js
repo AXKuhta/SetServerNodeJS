@@ -184,7 +184,8 @@ function register_fn(request, response) {
 		saved: 0,
 		modified: Date.now(),
 		nickname: nickname,
-		password: hash(password)
+		password: hash(password),
+		total_score: 0
 	}
 
 	save_state()
@@ -309,6 +310,10 @@ function room_claim_fn(request, response) {
 
 		room.cards = room.cards.flat()
 		room.players[user.nickname].score++
+
+		user.total_score++
+		user.modified = Date.now()
+		save_state()
 	} else {
 
 	}
