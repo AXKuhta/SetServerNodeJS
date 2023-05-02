@@ -127,16 +127,22 @@ function load_state() {
 
 // Save state to disk
 function save_state() {
+	let write_count = 0
+
 	for (let token in users) {
 		const user = users[token]
 
 		if (user.saved > user.modified)
 			continue
 
+		user.saved = Date.now()
+
 		fs.writeFileSync(data_dir + token, JSON.stringify(user))
 
-		user.saved = Date.now()
+		write_count++
 	}
+
+	console.log("save_state(): wrote", write_count, "files")
 }
 
 // ============================================================================
