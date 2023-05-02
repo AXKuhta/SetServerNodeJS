@@ -129,7 +129,7 @@ function room_list_fn(request, response) {
 	if (token in users === false) return response.json(err("Invalid token"))
 
 	const result = {
-		games: rooms.map(function(x, k) { return { id: k } })
+		games: rooms.map(function(x, k) { return { id: k, users: Object.keys(x.users) } })
 	}
 
 	response.json(result)
