@@ -4,7 +4,7 @@ function fail() {
 }
 
 function request() {
-	curl -s -X POST -H "Content-Type: application/json" -d "$1" "http://localhost:3000$2" || fail
+	curl -s -X POST -H "Content-Type: application/json" -d "$1" "http://localhost:3000$2"
 }
 
 # 1. Register a new account
@@ -34,5 +34,10 @@ echo $response | python3 -m json.tool || fail
 # 4. Join a room
 json="{\"token\": \"$token\", \"gameId\": \"$room_id\"}"
 response=`request "$json" "/set/room/enter"`
+echo $response | python3 -m json.tool || fail
+
+# 5. Pull card set
+json="{\"token\": \"$token\", \"gameId\": \"$room_id\"}"
+response=`request "$json" "/set/room/field"`
 echo $response | python3 -m json.tool || fail
 
