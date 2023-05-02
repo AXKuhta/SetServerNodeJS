@@ -110,11 +110,47 @@ function room_create_fn(request, response) {
 
 	const room = {
 		created: Date.now(),
-		users: [],
+		users: {},
 		cards: []
 	}
 
-	const room_id = rooms.push(room)
+	const room_id = rooms.push(room) - 1
+	const result = {
+		gameId: room_id
+	}
+
+	response.json(result)
+}
+
+function room_list_fn(request, response) {
+	const token = request.body.token || null
+
+	if (token === null) return response.json(err("Token missing"))
+	if (token in users === false) return response.json(err("Invalid token"))
+
+	const result = {
+		games: rooms.map(function(x, k) { return { id: k } })
+	}
+
+	response.json(result)
+}
+
+function room_enter_fn(request, response) {
+	const token = request.body.token || null
+	const room_id = request.body.gameId || null
+
+	if (token === null) return response.json(err("Token missing"))
+	if (room_id === null) return response.json(err("Game id missing"))
+	if (token in users === false) return response.json(err("Invalid token"))
+	if (room_id in rooms === false) return response.json(err("Invalid game id"))
+
+	const user = users[token]
+	const room = rooms[room_id]
+
+	if (user.nickname in room.users) return response.json(err("Already a player in this game"))
+
+	room.users[user.nickname] = true
+
 	const result = {
 		gameId: room_id
 	}
@@ -124,6 +160,8 @@ function room_create_fn(request, response) {
 
 app.post("/user/register", register_fn)
 app.post("/set/room/create", room_create_fn)
+app.post("/set/room/list", room_list_fn)
+app.post("/set/room/enter", room_enter_fn)
 
 // Standalone web server mode
 app.listen(3000)
