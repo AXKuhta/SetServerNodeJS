@@ -4,6 +4,7 @@ function fail() {
 }
 
 function request() {
+	>&2 echo "========================== $2 =========================="
 	curl -s -X POST -H "Content-Type: application/json" -d "$1" "http://localhost:3000$2"
 }
 
@@ -40,4 +41,10 @@ echo $response | python3 -m json.tool || fail
 json="{\"token\": \"$token\", \"gameId\": \"$room_id\"}"
 response=`request "$json" "/set/room/field"`
 echo $response | python3 -m json.tool || fail
+
+# 6. Pull debug solutions
+json="{\"token\": \"$token\", \"gameId\": \"$room_id\"}"
+response=`request "$json" "/set/room/debug"`
+echo $response | python3 -m json.tool || fail
+
 

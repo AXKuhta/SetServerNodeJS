@@ -53,6 +53,47 @@ function shuffle(arr) {
 	return sh_arr
 }
 
+function all_different_or_equal(a, b, c) {
+	const diff = (a != b) + (a != c) + (b != c)
+
+	return diff == 0 || diff == 3
+}
+
+function is_a_set(a, b, c) {
+	return	all_different_or_equal(a.count, b.count, c.count) &&
+		all_different_or_equal(a.color, b.color, c.color) &&
+		all_different_or_equal(a.shape, b.shape, c.shape) &&
+		all_different_or_equal(a.fill, b.fill, c.fill)
+}
+
+function set_detect(cards) {
+	const sets = []
+	const sublevel = [].concat(cards)
+
+	for (let k1 in sublevel) {
+		const a = sublevel[k1]
+
+		delete sublevel[k1]
+
+		const sublevel2 = [].concat(sublevel)
+
+		for (let k2 in sublevel2) {
+			const b = sublevel2[k2]
+
+			delete sublevel2[k2]
+
+			for (let k3 in sublevel2) {
+				const c = sublevel2[k3]
+
+				if (is_a_set(a, b, c))
+					sets.push([+k1, +k2, +k3])
+			}
+		}
+	}
+
+	return sets
+}
+
 // ============================================================================
 // State + associated functions
 // ============================================================================
@@ -233,11 +274,33 @@ function room_field_fn(request, response) {
 	response.json(result)
 }
 
+function room_debug_fn(request, response) {
+	const token = request.body.token || null
+	const room_id = request.body.gameId || null
+
+	if (token === null) return response.json(err("Token missing"))
+	if (room_id === null) return response.json(err("Game id missing"))
+	if (token in users === false) return response.json(err("Invalid token"))
+	if (room_id in rooms === false) return response.json(err("Invalid game id"))
+
+	const user = users[token]
+	const room = rooms[room_id]
+
+	if (user.nickname in room.players === false) return response.json(err("Not a player in this game"))
+
+	const result = {
+		sets: set_detect(room.cards.slice(0, room.cards_visible))
+	}
+
+	response.json(result)
+}
+
 app.post("/user/register", register_fn)
 app.post("/set/room/create", room_create_fn)
 app.post("/set/room/list", room_list_fn)
 app.post("/set/room/enter", room_enter_fn)
 app.post("/set/room/field", room_field_fn)
+app.post("/set/room/debug", room_debug_fn)
 
 // Standalone web server mode
 app.listen(3000)
