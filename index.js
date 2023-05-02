@@ -274,6 +274,46 @@ function room_field_fn(request, response) {
 	response.json(result)
 }
 
+function room_claim_fn(request, response) {
+	const token = request.body.token || null
+	const room_id = request.body.gameId || null
+	const cards = request.body.cards || null
+
+	if (token === null) return response.json(err("Token missing"))
+	if (room_id === null) return response.json(err("Game id missing"))
+	if (cards == null) return response.json(err("Cards missing"))
+	if (token in users === false) return response.json(err("Invalid token"))
+	if (room_id in rooms === false) return response.json(err("Invalid game id"))
+
+	const user = users[token]
+	const room = rooms[room_id]
+
+	if (user.nickname in room.players === false) return response.json(err("Not a player in this game"))
+
+	const visible = room.cards.slice(0, room.cards_visible)
+	const k1 = cards[0] ?? 0
+	const k2 = cards[1] ?? 0
+	const k3 = cards[2] ?? 0
+	const hit = is_a_set(visible[k1], visible[k2], visible[k3])
+
+	if (hit) {
+		delete room.cards[k1]
+		delete room.cards[k2]
+		delete room.cards[k3]
+
+		room.players[user.nickname].score++
+	} else {
+
+	}
+
+	const result = {
+		isSet: hit,
+		score: room.players[user.nickname].score
+	}
+
+	response.json(result)
+}
+
 function room_debug_fn(request, response) {
 	const token = request.body.token || null
 	const room_id = request.body.gameId || null
@@ -300,6 +340,7 @@ app.post("/set/room/create", room_create_fn)
 app.post("/set/room/list", room_list_fn)
 app.post("/set/room/enter", room_enter_fn)
 app.post("/set/room/field", room_field_fn)
+app.post("/set/room/claim", room_claim_fn)
 app.post("/set/room/debug", room_debug_fn)
 
 // Standalone web server mode

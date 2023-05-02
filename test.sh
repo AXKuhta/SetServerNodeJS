@@ -37,14 +37,37 @@ json="{\"token\": \"$token\", \"gameId\": \"$room_id\"}"
 response=`request "$json" "/set/room/enter"`
 echo $response | python3 -m json.tool || fail
 
-# 5. Pull card set
+# 5. Refresh field + player info
 json="{\"token\": \"$token\", \"gameId\": \"$room_id\"}"
 response=`request "$json" "/set/room/field"`
 echo $response | python3 -m json.tool || fail
 
-# 6. Pull debug solutions
+while true
+do
+	# 6. Pull debug solutions
+	json="{\"token\": \"$token\", \"gameId\": \"$room_id\"}"
+	response=`request "$json" "/set/room/debug"`
+	echo $response | python3 -m json.tool || fail
+
+	# 6a. Extract a set
+	all_sets=`echo $response | python3 -c "import sys, json; print(json.load(sys.stdin)['sets'])" || fail`
+
+	if [[ "$all_sets" = "[]" ]]
+	then
+		echo "No more sets left"
+		break
+	fi
+
+	a_set=`echo $response | python3 -c "import sys, json; print(json.load(sys.stdin)['sets'][0])" || fail`
+	echo "A set: $a_set"
+
+	# 7. Claim a set
+	json="{\"token\": \"$token\", \"gameId\": \"$room_id\", \"cards\": $a_set}"
+	response=`request "$json" "/set/room/claim"`
+	echo $response | python3 -m json.tool || fail
+done
+
+# 5. Refresh again
 json="{\"token\": \"$token\", \"gameId\": \"$room_id\"}"
-response=`request "$json" "/set/room/debug"`
+response=`request "$json" "/set/room/field"`
 echo $response | python3 -m json.tool || fail
-
-
