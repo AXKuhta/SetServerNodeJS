@@ -301,6 +301,7 @@ function room_claim_fn(request, response) {
 		delete room.cards[k2]
 		delete room.cards[k3]
 
+		room.cards = room.cards.flat()
 		room.players[user.nickname].score++
 	} else {
 
